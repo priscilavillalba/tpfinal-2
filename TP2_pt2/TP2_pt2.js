@@ -21,6 +21,22 @@ let botonReiniciar;
 let tiempoMax = 30;
 let tiempoInicio;
 
+// IMÁGENES
+let imgPersefone;
+let imgHades;
+let imgSombra;
+let imgFlor;
+
+// -----------------------
+// CARGA DE IMÁGENES
+// -----------------------
+function preload() {
+  imgPersefone = loadImage("assets/personaje.persefone.png");
+  imgHades = loadImage("assets/enemigo.hades.png");
+  imgSombra = loadImage("assets/enemigo.sombra.png");
+  imgFlor = loadImage("assets/objeto.flores.png");
+}
+
 // -----------------------
 function setup() {
   createCanvas(640, 480);
@@ -56,7 +72,10 @@ function iniciarJuego() {
       x = floor(random(cols));
       y = floor(random(rows));
     } while (mapData[y][x] === 1 || (x === 1 && y === 1));
-    enemies.push(new Enemy(x, y));
+
+    // Alternar entre Hades y Sombra
+    let tipo = random() < 0.5 ? "hades" : "sombra";
+    enemies.push(new Enemy(x, y, tipo));
   }
 
   if (botonReiniciar) {
@@ -67,7 +86,7 @@ function iniciarJuego() {
 
 // -----------------------
 function draw() {
-  background(30);
+  background(35, 20, 74);
   drawMap();
 
   // TIEMPO
@@ -95,24 +114,7 @@ function draw() {
 
       // COLISIÓN ENEMIGO - PERSEFONE
       if (dist(e.x, e.y, persefone.x, persefone.y) < 1) {
-
-        // REINICIAR SOLO PROGRESO, NO EL JUEGO
-        persefone.x = 1;
-        persefone.y = 1;
-
-        // PERDER FLORES
-        score = 0;
-
-        // REGENERAR FLORES
-        flowers = [];
-        for (let i = 0; i < numFlowers; i++) {
-          let x, y;
-          do {
-            x = floor(random(cols));
-            y = floor(random(rows));
-          } while (mapData[y][x] === 1 || (x === 1 && y === 1));
-          flowers.push(new Flower(x, y));
-        }
+        perseveroneCaught();
       }
     }
 
@@ -152,6 +154,24 @@ function draw() {
 }
 
 // -----------------------
+function perseveroneCaught() {
+  persefone.x = 1;
+  persefone.y = 1;
+
+  score = 0;
+
+  flowers = [];
+  for (let i = 0; i < numFlowers; i++) {
+    let x, y;
+    do {
+      x = floor(random(cols));
+      y = floor(random(rows));
+    } while (mapData[y][x] === 1 || (x === 1 && y === 1));
+    flowers.push(new Flower(x, y));
+  }
+}
+
+// -----------------------
 function mostrarBotonReiniciar() {
   if (!botonReiniciar) {
     botonReiniciar = createButton("Reiniciar");
@@ -160,12 +180,6 @@ function mostrarBotonReiniciar() {
       iniciarJuego();
       loop();
     });
-    botonReiniciar.style("background-color", "#ffb3e6");
-    botonReiniciar.style("border", "none");
-    botonReiniciar.style("padding", "10px 20px");
-    botonReiniciar.style("font-size", "16px");
-    botonReiniciar.style("border-radius", "8px");
-    botonReiniciar.style("cursor", "pointer");
   }
 }
 
@@ -201,15 +215,15 @@ class Player {
   }
 
   show() {
-    fill(255, 200, 0);
-    ellipse(this.x * gridSize + gridSize / 2, this.y * gridSize + gridSize / 2, gridSize * 0.8);
+    image(imgPersefone, this.x * gridSize, this.y * gridSize, gridSize, gridSize);
   }
 }
 
 class Enemy {
-  constructor(x, y) {
+  constructor(x, y, tipo) {
     this.x = x;
     this.y = y;
+    this.tipo = tipo;
     this.dir = random([0, 1, 2, 3]);
     this.moveTimer = 0;
   }
@@ -243,8 +257,8 @@ class Enemy {
   }
 
   show() {
-    fill(200, 50, 50);
-    rect(this.x * gridSize + 4, this.y * gridSize + 4, gridSize - 8, gridSize - 8, 5);
+    let sprite = this.tipo === "hades" ? imgHades : imgSombra;
+    image(sprite, this.x * gridSize, this.y * gridSize, gridSize, gridSize);
   }
 }
 
@@ -255,8 +269,7 @@ class Flower {
   }
 
   show() {
-    fill(255, 150, 255);
-    ellipse(this.x * gridSize + gridSize / 2, this.y * gridSize + gridSize / 2, gridSize / 2);
+    image(imgFlor, this.x * gridSize, this.y * gridSize, gridSize, gridSize);
   }
 }
 
@@ -280,7 +293,7 @@ function drawMap() {
   for (let y = 0; y < rows; y++) {
     for (let x = 0; x < cols; x++) {
       if (mapData[y][x] === 1) {
-        fill(70);
+        fill(61, 23, 179);
         rect(x * gridSize, y * gridSize, gridSize, gridSize);
       }
     }
